@@ -1,0 +1,103 @@
+drop table fc_product cascade constraint;
+drop table fc_customer cascade constraint;
+drop table fc_cart cascade constraint;
+drop table fc_inventory cascade constraint;
+drop table fc_shipment cascade constraint;
+
+
+create table fc_product
+	(pr_code	number(5)		primary key,
+	 pr_name 	varchar2(25)    	not null,
+	 pr_avail	number(20)		not null,
+	 pr_sold 	number(20)		default 0,
+	 pr_price	number(20,2) 		not null );
+
+
+create table fc_customer
+    	(cu_code	number(5)		primary key,
+	 cu_fname	varchar2(25)		not null,
+	 cu_lname 	varchar2(25)		not null,
+	 cu_email	varchar2(25)		not null,
+	 cu_credit	number(20));
+
+
+create table fc_cart
+    (ca_code	number(5)		primary key,
+	ca_status	number(1)		not null	,
+	ca_cust		number(5)		references fc_customer(cu_code),
+	ca_quant 	number(20)		not null	default 0,
+	ca_price	number(20)		not null );
+
+
+create table fc_inventory
+	(in_code 	number(5)		primary key,
+	 in_cart 	number(5)		references fc_cart(ca_code),
+	 in_product 	number(5)		references fc_product(pr_code),
+	 in_quant	number(20)		not null );
+
+
+create table fc_shipment
+	(sh_code	number(5)		primary key,
+	 sh_status	number(1)		not null,
+	 sh_cust	number(5)		references fc_customer(cu_code),
+	 sh_cart	number(5)		references fc_cart(ca_code),
+	 sh_cost	number(20)		not null,
+	 sh_total	number(20)		not null,
+	 sh_track	varchar2(25)		unique,
+	 sh_start	date			not null,
+	 sh_ship	date );
+
+alter table "FC_CART" add constraint
+"FC_CART_CON" check ( "CA_STATUS" in (1,2))
+/
+alter table "FC_CUSTOMER" add constraint
+"FC_CUSTOMER_CON" check ( "CU_CREDIT" < 10000)
+/
+alter table "FC_SHIPMENT" add constraint
+"FC_SHIPMENT_CON" check ( "SH_STATUS" in (1,2))
+/
+
+
+
+insert into fc_product values(10001, 'Kitchen Paper x8', 350, 108, 19.95);
+insert into fc_product values(10002, 'TI Calculator', 130, 47, 4.85);
+insert into fc_product values(10003, 'Tuna Pack x4', 250, 98, 14.50);
+insert into fc_product values(10004, 'HE Light Bulb', 300, 149, 3.75);
+insert into fc_product values(10005, 'MI Digital Clock', 170, 72, 32.12);
+insert into fc_product values(10006, 'TurboTax', 240, 110, 89.95);
+insert into fc_product values(10007, 'RI Safety Kit', 220, 65, 53.75);
+insert into fc_product values(10008, 'Nexus 5X', 150, 132, 289.95);
+
+
+insert into fc_customer values(11492, 'John', 'Smith', 'jsmith@gmail.com', 1254.39);
+insert into fc_customer values(42719, 'Amanda', 'Lee', 'alee@gmail.com', 734.25);
+insert into fc_customer values(24932, 'Garett', 'Enfield', 'enfield@gmail.com', 253.00);
+insert into fc_customer values(12589, 'Martin', 'Kim', 'mkim@gmail.com', 423.12);
+
+
+insert into fc_cart values(30001, 2, 11492, 77.12);
+insert into fc_cart values(30002, 2, 24932, 1159.80);
+insert into fc_cart values(30003, 2, 11492, 97.25);
+insert into fc_cart values(30004, 2, 42719, 32.12);
+insert into fc_cart values(30005, 1, 12589, 22.50);
+insert into fc_cart values(30006, 2, 42719, 644.14);
+
+
+
+
+insert into fc_inventory values(20001, 30001, 10004, 12);
+insert into fc_inventory values(20002, 30001, 10005, 1);
+insert into fc_inventory values(20003, 30002, 10008, 4);
+insert into fc_inventory values(20004, 30003, 10003, 3);
+insert into fc_inventory values(20005, 30003, 10007, 1);
+insert into fc_inventory values(20006, 30004, 10005, 1);
+insert into fc_inventory values(20007, 30005, 10004, 6);
+insert into fc_inventory values(20008, 30006, 10005, 2);
+insert into fc_inventory values(20009, 30006, 10008, 2);
+
+
+insert into fc_shipment values(40001, 2, 11492, 30001, 2.50, 79.62, 'HPQ451A24519', sysdate-10, sysdate-5);
+insert into fc_shipment values(40002, 2, 24932, 30002, 7.95, 1167.75, 'RS25D1125SQ1', sysdate-15, sysdate-10);
+insert into fc_shipment values(40003, 2, 11492, 30003, 3.35, 100.60, 'ALE3ST1290W2', sysdate-7, sysdate-2);
+insert into fc_shipment values(40004, 1, 42719, 30004, 1.50, 33.62, 'BTLE24611E25', sysdate-1, NULL);
+insert into fc_shipment values(40005, 1, 42719, 30005, 5.45, 649.59, 'EI19SE4S0A64', sysdate, NULL);
