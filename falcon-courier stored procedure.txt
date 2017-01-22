@@ -1,0 +1,101 @@
+/* 
+Falcon Courier
+Project Procedure
+Develop a single Oracle "stored procedure" that will accomplish the "complex transaction" for your application
+
+What we should accomplish
+-Cannot process if inadequate stock ==> check inventory and if inventory has not enough quantity of products, update cart status to be ‘incomplete’
+-Order status cannot go “backwards” (i.e. ‘in-process’ back to ‘start’) ==> ?
+-Order cannot exceed customer credit $ limit ==> we need to set credit limit, and compare it with customer’s available credit a`nd decide how much credit customer can use in the order
+
+Things to get done
+-Changing fc_status data type from varchar2 to number (i.e., in-stock - 1, out-of-stock - 2)
+-Add quantity column in cart table
+*/
+
+create or replace procedure bc_new_cart
+(arg_code in number, arg_status in number, arg_cust in number, arg_quant in number, arg_price in number)
+is
+fc_code number; 
+fc_status number;
+fc_cust number;
+fc_quant number;
+fc_cost number;
+
+bad_code exception;
+bad_status exception;
+bad_cust exception;
+bad_quant exception;
+bad_cost exception;
+
+begin
+select max(ca_code) into fc_code from fc_cart
+where ca_code = arg_code and ca_status is not null and ca_cost is not null;
+if fc_code is null 
+then raise bad_code;
+end if;
+
+select max(ca_status) into fc_status 
+from fc_cart join fc_inventory on in_quant <= ca_quant;
+if fc_status is null
+then raise bad_status;
+end if;
+
+select max(ca_cust) into fc_cust 
+from fc_cart join fc_customer on cu_code = ca_cust;
+if fc_cust is null
+then raise bad_cust;
+end if;
+
+select sum(ca_quant) into fc_quant
+from fc_cart join fc_inventory on ca_code = in_cart;
+if arg_quant = 0 
+then raise bad_quant;
+end if;
+
+select max(ca_cost) into fc_cost from fc_cart;
+if fc_cost is null
+then raise bad_cost;
+end if;
+
+insert into fc_cart values (fc_cart_seq.nextval, arg_status, arg_cust, arg_quant, arg_cost);
+update fc_customer set cu_credit = cu_credit - (ca_cost - sh_cost)
+where ca_code = arg_code;
+update fc_shipment set 
+
+
+EXCEPTION
+when bad_code then
+raise application_error (-20000, 'Cart code is not found or inactive');
+when bad_status then 
+raise application_error (-20100, 'Cart status is not found or inactive');
+when bad_cust then 
+raise application_error (-20200, 'Customer number is not valid');
+when bad_quant then
+raise application_error (-20300, 'Quantity is not valid');
+when bad_cost then
+raise application_error (-20400, 'Total Cost is null');
+end;
+
+create or replace sequence fc_cart_id_seq start with 1 increment by 1;
+
+create or replace trigger fc_cart_id_insert
+before insert on fc_cart
+for each row
+begin
+    select fc_cart_id_seq.nextval into :new.id from dual;
+end;
+/
+
+create or replace procedure product_to_cart
+(arg_prod, arg_
+
+pseudo code for procedures
+
+ca_seq.nextval
+:ca_status = 0;
+:ca_cust = arg_cust;
+
+inv_seq.nextval
+arg_id = :in_prod
+arg_quant = :
